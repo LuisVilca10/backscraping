@@ -1,0 +1,11 @@
+firebase-admin==6.1.0  # SDK de Firebase para Python
+python-dotenv==1.0.0   # Manejo de variables de entorno
+requests==2.31.0       # Para solicitudes HTTP (scraping o integraciones)
+beautifulsoup4==4.12.2 # Librería para análisis HTML (opcional para scraping)
+pandas==2.1.1          # Manejo de datos tabulares (opcional para scraping)
+selenium==4.12.0       # Automatización de navegadores (opcional para scraping)
+flask==2.3.3           # Servidor web ligero (si estás usando Flask)
+fastapi==0.101.1       # Alternativa moderna a Flask (si estás usando FastAPI)
+uvicorn==0.23.0        # Servidor ASGI para FastAPI (si aplicas FastAPI)
+gunicorn==20.1.0       # Servidor WSGI para producción (si usas Flask)
+SQLAlchemy==2.0.22     # ORM para bases de datos (opcional)

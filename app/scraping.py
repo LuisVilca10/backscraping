@@ -437,7 +437,67 @@ def scraping_tvsur_politica():
             print("No se encontraron noticias.")
     else:
         print('Error al acceder a la página.')
-        
+
+def scraping_marca_futbol_internacional():
+    url = 'https://www.marca.com/futbol/futbol-internacional.html'
+    response = requests.get(url)
+    response.raise_for_status()  # Verifica que la solicitud fue exitosa
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Encuentra todos los artículos de noticias
+    articles = soup.find_all('div', class_='ue-c-cover-content__body')
+
+    noticias = []
+
+    for article in articles:
+        # Extrae el título y el enlace
+        headline_group = article.find('header', class_='ue-c-cover-content__headline-group')
+        if headline_group:
+            link_tag = headline_group.find('a', class_='ue-c-cover-content__link')
+            if link_tag:
+                titulo = link_tag.get_text(strip=True)
+                enlace = link_tag['href']
+                if not enlace.startswith('http'):
+                    enlace = 'https://www.marca.com' + enlace
+
+                # Realiza una solicitud al enlace del artículo para obtener la descripción
+                article_response = requests.get(enlace)
+                article_response.raise_for_status()
+                article_soup = BeautifulSoup(article_response.text, 'html.parser')
+
+                # Extrae la descripción del artículo
+                content_div = article_soup.find('div', class_='ue-c-article__body')
+                descripcion = ''
+                if content_div:
+                    paragraphs = content_div.find_all('p')
+                    descripcion = ' '.join(paragraph.get_text(strip=True) for paragraph in paragraphs)
+
+                # Extrae la imagen
+                media = article.find('div', class_='ue-c-cover-content__media')
+                imagen = None
+                if media:
+                    img_tag = media.find('img', class_='ue-c-cover-content__image')
+                    if img_tag and 'src' in img_tag.attrs:
+                        imagen = img_tag['src']
+
+                # Almacena la información en la lista de noticias
+                noticia = {
+                    'fecha': datetime.now().strftime('%B %d, %Y'),
+                    'titulo': titulo,
+                    'fuente': 'Marca',
+                    'descripcion': descripcion,
+                    'image': imagen
+                }
+                noticias.append(noticia)
+
+                # Sube la noticia a Firebase si no existe
+                upload_to_firebase('deportes', noticia)
+
+    return noticias
+
+#  Ejemplo de uso
+
 def scrape_all():
     scrape_tvsur()
     scraping_sinfronteras()
@@ -446,8 +506,10 @@ def scrape_all():
     scraping_andes_deportes()
     scraping_andes_politica()
     scraping_sinfronteras_politica()
-schedule.every(0.0001).minutes.do(scrape_all)
+    scraping_marca_futbol_internacional()
+    schedule.every(0.0001).minutes.do(scrape_all)
 
 while True:
+    scrape_all() 
     schedule.run_pending()
     time.sleep(1)
